@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>අම්මාගේ බඩු පොත 🍲</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@300;400;500;600;700&family=Noto+Serif+Sinhala:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#FFF8F0;
+    --card:#FFFFFF;
+    --border:#F0DDD0;
+    --muted:#A8876A;
+    --text:#3A2010;
+    --accent:#C85A1A;
+    --accent2:#E8940A;
+    --green:#2A7A3A;
+    --light:#FFF0E4;
+    --grad:linear-gradient(135deg,#C85A1A,#E8940A);
+  }
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans Sinhala',sans-serif;min-height:100vh;max-width:480px;margin:0 auto;}
+  input,select,textarea,button{font-family:'Noto Sans Sinhala',sans-serif;}
+
+  /* PAGES */
+  .page{display:none;min-height:100vh;}
+  .page.active{display:block;}
+
+  /* HEADER */
+  .header{background:var(--grad);padding:48px 20px 20px;color:#fff;position:relative;overflow:hidden;}
+  .header::after{content:'🍲';position:absolute;right:-10px;top:10px;font-size:80px;opacity:.15;}
+  .header-sub{font-size:11px;letter-spacing:2px;opacity:.8;margin-bottom:4px;}
+  .header-title{font-family:'Noto Serif Sinhala',serif;font-size:26px;font-weight:700;line-height:1.2;}
+  .header-count{margin-top:8px;font-size:13px;opacity:.85;}
+
+  /* SEARCH BAR */
+  .search-wrap{padding:14px 20px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+  .search{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-size:14px;color:var(--text);outline:none;}
+  .search:focus{border-color:var(--accent);}
+
+  /* RECIPE LIST */
+  .list-wrap{padding:16px 20px 100px;}
+  .recipe-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px #C85A1A0A;}
+  .recipe-emoji{width:52px;height:52px;border-radius:12px;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+  .recipe-name{font-size:15px;font-weight:600;line-height:1.3;}
+  .recipe-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+  .recipe-arrow{margin-left:auto;color:var(--muted);font-size:18px;flex-shrink:0;}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:60px 20px;}
+  .empty-icon{font-size:56px;margin-bottom:14px;}
+  .empty-title{font-family:'Noto Serif Sinhala',serif;font-size:19px;color:var(--muted);margin-bottom:8px;}
+  .empty-sub{font-size:13px;color:#C8A890;line-height:1.7;}
+
+  /* FAB */
+  .fab{position:fixed;bottom:24px;right:24px;width:58px;height:58px;border-radius:50%;background:var(--grad);border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 4px 20px #C85A1A55;display:flex;align-items:center;justify-content:center;z-index:20;}
+
+  /* ADD FORM */
+  .form-header{background:var(--grad);padding:48px 20px 20px;color:#fff;}
+  .form-title{font-family:'Noto Serif Sinhala',serif;font-size:22px;font-weight:700;}
+  .form-body{padding:20px 20px 100px;}
+
+  .field-label{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px;margin-top:18px;letter-spacing:.3px;}
+  .input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;}
+  .input:focus{border-color:var(--accent);}
+  textarea.input{resize:none;}
+
+  /* EMOJI PICKER */
+  .emoji-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .emoji-opt{width:42px;height:42px;border-radius:10px;border:2px solid var(--border);background:var(--light);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .emoji-opt.selected{border-color:var(--accent);background:#FFF0E4;}
+
+  /* INGREDIENT ROWS */
+  .ing-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+  .ing-row input{flex:1;}
+  .del-btn{width:36px;height:36px;border-radius:8px;background:#FFE8E0;border:none;color:var(--accent);font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+
+  /* STEP ROWS */
+  .step-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+  .step-num{width:28px;height:28px;border-radius:50%;background:var(--grad);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:6px;}
+  .step-row textarea{flex:1;min-height:60px;}
+
+  .add-row-btn{display:flex;align-items:center;gap:8px;background:var(--light);border:1px dashed var(--accent);border-radius:10px;padding:10px 14px;color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;width:100%;margin-top:4px;}
+
+  /* BUTTONS */
+  .btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px;}
+  .btn-primary{background:var(--grad);color:#fff;}
+  .btn-ghost{background:var(--border);color:var(--muted);}
+
+  /* BACK BTN */
+  .back-btn{background:none;border:none;color:rgba(255,255,255,.85);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:12px;padding:0;font-family:'Noto Sans Sinhala',sans-serif;}
+
+  /* DETAIL PAGE */
+  .detail-header{background:var(--grad);padding:48px 20px 24px;color:#fff;}
+  .detail-emoji{font-size:52px;margin-bottom:10px;}
+  .detail-title{font-family:'Noto Serif Sinhala',serif;font-size:22px;font-weight:700;line-height:1.3;}
+  .detail-meta{font-size:12px;opacity:.8;margin-top:6px;}
+  .detail-body{padding:20px 20px 100px;}
+
+  .section-head{font-family:'Noto Serif Sinhala',serif;font-size:16px;font-weight:700;color:var(--accent);margin:20px 0 12px;display:flex;align-items:center;gap:8px;}
+  .ing-chip{display:inline-block;background:var(--light);border:1px solid var(--border);border-radius:10px;padding:7px 14px;font-size:13px;margin:0 6px 8px 0;}
+  .step-item{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
+  .step-bubble{width:30px;height:30px;border-radius:50%;background:var(--grad);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .step-text{font-size:14px;line-height:1.7;color:var(--text);}
+
+  .note-box{background:var(--light);border-left:3px solid var(--accent2);border-radius:0 12px 12px 0;padding:14px 16px;font-size:13px;line-height:1.7;color:var(--text);margin-top:4px;}
+
+  .delete-btn{background:#FFE8E0;border:1px solid #F0C8B8;border-radius:12px;color:var(--accent);font-size:13px;font-weight:600;padding:12px;width:100%;cursor:pointer;margin-top:12px;}
+
+  /* CONFIRM */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .overlay-box{background:#fff;border-radius:20px;padding:32px 24px;text-align:center;max-width:320px;width:100%;}
+  .overlay-title{font-family:'Noto Serif Sinhala',serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:10px;}
+  .overlay-sub{font-size:13px;color:var(--muted);line-height:1.6;}
+  .overlay-btns{display:flex;gap:10px;margin-top:20px;}
+  .overlay-btns button{flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:'Noto Sans Sinhala',sans-serif;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ PAGE 1 — HOME LIST ═══════════ -->
+<div id="page-home" class="page active">
+  <div class="header">
+    <div class="header-sub">🍳 ගෙදර රස කෑම</div>
+    <div class="header-title">අම්මාගේ රෙසිපි පොත</div>
+    <div class="header-count" id="home-count"></div>
+  </div>
+  <div class="search-wrap">
+    <input class="search" id="search-input" type="text" placeholder="රෙසිපිය සොයන්න..." oninput="renderList()"/>
+  </div>
+  <div class="list-wrap" id="recipe-list"></div>
+  <button class="fab" onclick="showAddPage()" title="නව රෙසිපියක් එකතු කරන්න">+</button>
+</div>
+
+<!-- ═══════════ PAGE 2 — ADD RECIPE ═══════════ -->
+<div id="page-add" class="page">
+  <div class="form-header">
+    <button class="back-btn" onclick="showPage('page-home');renderList()">← ආපසු</button>
+    <div class="form-title">නව රෙසිපියක් එකතු කරන්න 🍲</div>
+  </div>
+  <div class="form-body">
+
+    <div class="field-label">කෑමේ නම *</div>
+    <input id="r-name" class="input" type="text" placeholder="උදා: දල් කරිය, කිරිබත්..."/>
+
+    <div class="field-label">කෑමේ වර්ගය (Emoji තෝරන්න)</div>
+    <div class="emoji-row" id="emoji-picker"></div>
+
+    <div class="field-label">කීය දෙනෙකුට? (Servings)</div>
+    <input id="r-servings" class="input" type="text" placeholder="උදා: 4 දෙනෙකුට"/>
+
+    <div class="field-label">කරන්නට ගත වන වේලාව</div>
+    <input id="r-time" class="input" type="text" placeholder="උදා: විනාඩි 30"/>
+
+    <div class="field-label">අවශ්‍ය ද්‍රව්‍ය (Ingredients) *</div>
+    <div id="ing-list"></div>
+    <button class="add-row-btn" onclick="addIngredient()">+ ද්‍රව්‍යයක් එකතු කරන්න</button>
+
+    <div class="field-label">හදන ක්‍රමය (Steps) *</div>
+    <div id="step-list"></div>
+    <button class="add-row-btn" onclick="addStep()">+ පියවරක් එකතු කරන්න</button>
+
+    <div class="field-label">විශේෂ සටහනක් (ඕන නම්)</div>
+    <textarea id="r-note" class="input" rows="3" placeholder="උදා: රතු ළූනු දැම්මොත් රසට..."></textarea>
+
+    <button class="btn btn-primary" style="margin-top:24px;" onclick="saveRecipe()">✅ රෙසිපිය සුරකින්න</button>
+    <button class="btn btn-ghost" onclick="showPage('page-home');renderList()">අවලංගු කරන්න</button>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 3 — VIEW RECIPE ═══════════ -->
+<div id="page-detail" class="page">
+  <div class="detail-header" id="detail-header"></div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- SAVE SUCCESS OVERLAY -->
+<div id="overlay-save" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <div style="font-size:52px;margin-bottom:10px;">🎉</div>
+    <div class="overlay-title">රෙසිපිය සුරකින්නා ලදී!</div>
+    <div class="overlay-sub">අම්මාගේ රෙසිපිය ඔබේ පොතට එකතු වුණා.</div>
+    <div class="overlay-btns">
+      <button style="background:var(--light);color:var(--accent);" onclick="closeOverlay('overlay-save');showAddPage()">තවත් එකක්</button>
+      <button style="background:var(--grad);color:#fff;" onclick="closeOverlay('overlay-save');showPage('page-home');renderList()">ආපසු යන්න</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM OVERLAY -->
+<div id="overlay-delete" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <div style="font-size:44px;margin-bottom:10px;">🗑️</div>
+    <div class="overlay-title">මකා දමන්නද?</div>
+    <div class="overlay-sub">මෙම රෙසිපිය ස්ථිරවම මකා දැමේ.</div>
+    <div class="overlay-btns">
+      <button style="background:var(--light);color:var(--muted);" onclick="closeOverlay('overlay-delete')">නැහැ</button>
+      <button style="background:#C85A1A;color:#fff;" onclick="confirmDelete()">ඔව්, මකන්න</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── EMOJIS ────────────────────────────────────────────
+const EMOJIS = ['🍲','🍛','🍜','🥘','🍚','🥗','🥙','🫕','🍳','🥞','🍞','🫙','🧆','🍗','🥩','🐟','🥬','🌶️','🍋','🧁'];
+let selectedEmoji = '🍲';
+let pendingDeleteId = null;
+
+function renderEmojiPicker() {
+  document.getElementById('emoji-picker').innerHTML = EMOJIS.map(e =>
+    `<div class="emoji-opt${e===selectedEmoji?' selected':''}" onclick="selectEmoji('${e}')">${e}</div>`
+  ).join('');
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  renderEmojiPicker();
+}
+
+// ── INGREDIENTS ───────────────────────────────────────
+let ingredients = [''];
+let steps = [''];
+
+function renderIngredients() {
+  document.getElementById('ing-list').innerHTML = ingredients.map((v,i) => `
+    <div class="ing-row">
+      <input class="input" value="${escHtml(v)}" placeholder="උදා: කුකුල් මස් ග්‍රෑම් 500" oninput="ingredients[${i}]=this.value"/>
+      <button class="del-btn" onclick="removeIng(${i})">×</button>
+    </div>`).join('');
+}
+
+function addIngredient() { ingredients.push(''); renderIngredients(); }
+function removeIng(i) { if(ingredients.length>1){ingredients.splice(i,1);} else {ingredients[0]='';} renderIngredients(); }
+
+function renderSteps() {
+  document.getElementById('step-list').innerHTML = steps.map((v,i) => `
+    <div class="step-row">
+      <div class="step-num">${i+1}</div>
+      <textarea class="input" rows="2" placeholder="මෙහිදී කරන දේ ලියන්න..." oninput="steps[${i}]=this.value">${escHtml(v)}</textarea>
+      <button class="del-btn" style="margin-top:4px;" onclick="removeStep(${i})">×</button>
+    </div>`).join('');
+}
+
+function addStep() { steps.push(''); renderSteps(); }
+function removeStep(i) { if(steps.length>1){steps.splice(i,1);} else {steps[0]='';} renderSteps(); }
+
+// ── DATA ──────────────────────────────────────────────
+function getRecipes() { return JSON.parse(localStorage.getItem('amma_recipes')||'[]'); }
+function saveRecipes(r) { localStorage.setItem('amma_recipes',JSON.stringify(r)); }
+
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── SAVE ──────────────────────────────────────────────
+function saveRecipe() {
+  const name = document.getElementById('r-name').value.trim();
+  if (!name) { alert('කෑමේ නම ලියන්න!'); return; }
+
+  const ings = ingredients.filter(i=>i.trim());
+  const stes = steps.filter(s=>s.trim());
+  if (!ings.length) { alert('අවශ්‍ය ද්‍රව්‍ය ලියන්න!'); return; }
+  if (!stes.length) { alert('හදන ක්‍රමය ලියන්න!'); return; }
+
+  const recipe = {
+    id: Date.now().toString(),
+    name,
+    emoji: selectedEmoji,
+    servings: document.getElementById('r-servings').value.trim(),
+    time: document.getElementById('r-time').value.trim(),
+    ingredients: ings,
+    steps: stes,
+    note: document.getElementById('r-note').value.trim(),
+    added: new Date().toLocaleDateString('si-LK')
+  };
+
+  const all = getRecipes();
+  all.unshift(recipe);
+  saveRecipes(all);
+
+  document.getElementById('overlay-save').style.display = 'flex';
+}
+
+// ── LIST ──────────────────────────────────────────────
+function renderList() {
+  const q = (document.getElementById('search-input').value||'').trim().toLowerCase();
+  const all = getRecipes().filter(r => !q || r.name.toLowerCase().includes(q));
+  const el = document.getElementById('recipe-list');
+  const countEl = document.getElementById('home-count');
+
+  const total = getRecipes().length;
+  countEl.textContent = total ? `රෙසිපි ${total}ක් ඇත` : '';
+
+  if (!all.length) {
+    el.innerHTML = `<div class="empty">
+      <div class="empty-icon">🍲</div>
+      <div class="empty-title">${q ? 'හොයාගත නොහැකි විය' : 'රෙසිපි නැහැ තවම'}</div>
+      <div class="empty-sub">${q ? 'වෙනත් වචනයකින් සොයන්න.' : '+ බොත්තම누ර් අල්ලා<br/>අම්මාගේ පළමු රෙසිපිය<br/>ඇතුළු කරන්න! 🌸'}</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = all.map(r => `
+    <div class="recipe-card" onclick="viewRecipe('${r.id}')">
+      <div class="recipe-emoji">${r.emoji}</div>
+      <div>
+        <div class="recipe-name">${escHtml(r.name)}</div>
+        <div class="recipe-meta">${[r.servings,r.time].filter(Boolean).join(' · ') || 'රෙසිපිය'}</div>
+      </div>
+      <div class="recipe-arrow">›</div>
+    </div>`).join('');
+}
+
+// ── VIEW ──────────────────────────────────────────────
+function viewRecipe(id) {
+  const r = getRecipes().find(x=>x.id===id);
+  if (!r) return;
+
+  document.getElementById('detail-header').innerHTML = `
+    <button class="back-btn" onclick="showPage('page-home');renderList()">← ආපසු</button>
+    <div class="detail-emoji">${r.emoji}</div>
+    <div class="detail-title">${escHtml(r.name)}</div>
+    <div class="detail-meta">${[r.servings && '👥 '+r.servings, r.time && '⏱ '+r.time].filter(Boolean).join('  ·  ')}</div>
+  `;
+
+  const ings = r.ingredients.map(i=>`<span class="ing-chip">${escHtml(i)}</span>`).join('');
+  const stps = r.steps.map((s,i)=>`
+    <div class="step-item">
+      <div class="step-bubble">${i+1}</div>
+      <div class="step-text">${escHtml(s)}</div>
+    </div>`).join('');
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="section-head">🥄 අවශ්‍ය ද්‍රව්‍ය</div>
+    <div>${ings}</div>
+    <div class="section-head">👩‍🍳 හදන ක්‍රමය</div>
+    ${stps}
+    ${r.note ? `<div class="section-head">📝 විශේෂ සටහන</div><div class="note-box">${escHtml(r.note)}</div>` : ''}
+    <button class="delete-btn" onclick="askDelete('${r.id}')">🗑️ මෙම රෙසිපිය මකා දමන්න</button>
+  `;
+
+  showPage('page-detail');
+}
+
+// ── DELETE ────────────────────────────────────────────
+function askDelete(id) {
+  pendingDeleteId = id;
+  document.getElementById('overlay-delete').style.display = 'flex';
+}
+function confirmDelete() {
+  if (!pendingDeleteId) return;
+  saveRecipes(getRecipes().filter(r=>r.id!==pendingDeleteId));
+  pendingDeleteId = null;
+  closeOverlay('overlay-delete');
+  showPage('page-home');
+  renderList();
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showAddPage() {
+  selectedEmoji = '🍲';
+  ingredients = [''];
+  steps = [''];
+  ['r-name','r-servings','r-time','r-note'].forEach(id=>document.getElementById(id).value='');
+  renderEmojiPicker();
+  renderIngredients();
+  renderSteps();
+  showPage('page-add');
+}
+
+function closeOverlay(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+// ── INIT ──────────────────────────────────────────────
+renderList();
+</script>
+</body>
+</html>
